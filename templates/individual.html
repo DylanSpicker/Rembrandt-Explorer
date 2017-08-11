@@ -1,0 +1,105 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Rembrandt Explorer</h1>
+            
+            <a class='btn btn-default' href="/1">Explore Volume 1</a>
+            <a class='btn btn-default' href="/2">Explore Volume 2</a>
+            <a class='btn btn-default' href="/3">Explore Volume 3</a>
+            <a class='btn btn-default' href="/4">Explore Volume 4</a>
+            <a class='btn btn-default' href="/5">Explore Volume 5</a>
+            <a class='btn btn-default' href="/6">Explore Volume 6</a>
+        </div>
+    </div>
+    {% if content_json %}
+        <div class="container">
+            <h3>Named Entities</h3>
+            <table id="entities_table" class="table table-striped">
+                <thead>
+                    <th>Relevance</th>
+                    <th>Text</th>
+                    <th>Type</th>
+                    <th>Occurences</th>
+                    <th>Subtypes</th>
+                    <th></th>
+                </thead>
+                <tbody>
+                {% if content_json['entities'] %}
+                    {% for entity in content_json['entities'] %}
+                        <tr>
+                            <td>{{ entity['relevance'] }}</td>
+                            <td>{{ entity['text'] }}</td>
+                            <td>{{ entity['type'] }}</td>
+                            <td>{{ entity['count'] }}</td>
+                            <td>
+                                {% if entity['disambiguation'] and entity['disambiguation']['subtype'] %}
+                                    <ul>
+                                        {% for subtype in entity['disambiguation']['subtype'] %}
+                                            <li>{{ subtype }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {%if entity['disambiguation'] %}
+                                    <p><a href="{{ entity['disambiguation']['dbpedia_resource'] }}" target="_BLANK">{{ entity['disambiguation']['name'] }}</a></p>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+            <!-- Concepts Table -->
+            <h3>Named Concepts</h3>
+            <table id="concepts_table" class="table table-striped">
+                <thead>
+                    <th>Text</th>
+                    <th>Relevance</th>
+                    <th>Link</th>
+                </thead>
+                <tbody>
+                {% if content_json['concepts'] %}
+                {% for concept in content_json['concepts'] %}
+                    <tr>
+                        <td>{{ concept['text'] }}</td>
+                        <td>{{ concept['relevance'] }}</td>
+                        <td><a href='{{ concept['dbpedia_resource'] }}' target='_BLANK'>{{ concept['dbpedia_resource'] }}</a></td>
+                    </tr>
+                {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+
+            <!-- Keywords Table --> 
+            <h3> Keywords </h3>
+            <table id="keywords_table" class="table table-striped">
+                <thead>
+                    <th>Keyword</th>
+                    <th>Relevance</th>
+                </thead>
+                <tbody>
+                {% if content_json['keywords'] %}
+                {% for keyword in content_json['keywords'] %}
+                    <tr>
+                        <td>{{ keyword['text'] }}</td>
+                        <td>{{ keyword['relevance'] }}</td>
+                    </tr>
+                {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+            
+        </div>
+        <script>
+            $("#individual_navbar_link").addClass("active");
+            $("#entities_table").DataTable();
+            $("#concepts_table").DataTable();
+            $("#keywords_table").DataTable();
+        </script>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,223 @@
+{% extends "index.html" %}
+
+{% block body %}
+
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Rembrandt Explorer</h1>
+            <p><strong>This Discovery Tooling</strong> provides a cognitive search framework which allows for quick-and-easy search through the corpus as a whole. </p>
+            <p>At the present, the model being used has not been custom tailored to the corpus, and only Volumes 4, 5, and 6 are contained; but it should give an idea as to what the capabilities are.</p>
+        </div>
+    </div>
+    <div class="container paddingb_50">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group" id="adv-search">
+                    <input id="nl_query_text" type="text" class="form-control" placeholder="Natural Language Query" />
+                    <div class="input-group-btn">
+                        <div class="btn-group" role="group">
+                            <div class="dropdown dropdown-lg">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+                                <div class="dropdown-menu dropdown-menu-right" role="menu">
+                                    <form class="form-horizontal" role="form">
+                                    <div class="form-group">
+                                        <label for="filter">Limit to</label>
+                                        <select id="sentiment_restriction_value" class="form-control">
+                                            <option value="0" selected>All Sentiments</option>
+                                            <option value="1">Only Positive</option>
+                                            <option value="2">Only Negative</option>
+                                            <option value="3">Only Neutral</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contain">Pertaining to these Concepts</label>
+                                        <input id="concepts_text" class="form-control" type="text" placeholder="" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contain">About these Entities</label>
+                                        <input id="entities_text" class="form-control" type="text" placeholder="" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="contain">Contains the Keywords</label>
+                                        <input id="keywords_text" class="form-control" type="text" />
+                                    </div>
+                                    <button type="submit" class="btn search_button btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                                    </form>
+                                </div>
+                            </div>
+                            <button type="button" class="btn search_button btn-primary"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="container loader">
+        <div class="sk-folding-cube">
+            <div class="sk-cube1 sk-cube"></div>
+            <div class="sk-cube2 sk-cube"></div>
+            <div class="sk-cube4 sk-cube"></div>
+            <div class="sk-cube3 sk-cube"></div>
+        </div>
+    </div>
+    <div class='discovery_result'>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 well" id="summary_text">
+                    <h3>Summary</h3>
+                    <p>
+                        The query returned <span id='matching_results'></span> results. There are <span id='passages_length'></span> corresponding passages.<br>
+                    </p>
+                </div>
+            </div>
+            <ul id='tab_nav_holder' class='nav nav-pills'>
+                  <li class='active'><a data-toggle='tab' href='#passage_holder'>Passages</a></li>
+            </ul>
+            <hr />
+            <div class='tab-content'>
+                <div id='passage_holder' class='tab-pane fade in active'>
+                    <div id='passage_0' class='row passage'>
+                        <p class='passage_text col-md-10 well'></p>
+                        <p class='passage_score col-md-2'></p>
+                    </div>
+                </div>
+            </div>
+            <a href="#summary_text" class="scroll_top">
+                <i class="glyphicon glyphicon-chevron-up"></i>    
+            </a> 
+        </div>
+    </div>
+    <script>
+
+        function setText(elId, text) {
+            $("#"+elId).text(text);
+        }
+        function nl2br (str, is_xhtml) {
+            var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
+            return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + breakTag + '$2');
+        }
+        function htmlEntities(str) {
+            return String(str).replace(/&/g, '&amp;').
+                                replace(/</g, '&lt;').
+                                replace(/>/g, '&gt;').
+                                replace(/"/g, '&quot;').
+                                replace(/'/g, '&#039;');
+        }
+        function decodeHtml(html) {
+            var txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        }
+
+        $("#discovery_navbar_link").addClass("active");
+
+        $(".search_button").on("click", function(){
+            var form_data_to_submit = {}; 
+
+            form_data_to_submit['natural_language_query'] = $("#nl_query_text").val();
+            form_data_to_submit['sentiment_restriction'] = $("#sentiment_restriction_value").val();
+            
+            form_data_to_submit['concepts'] = $("#concepts_text").val();
+            form_data_to_submit['entities'] = $("#entities_text").val();
+            form_data_to_submit['keywords'] = $("#keywords_text").val();
+
+
+            $(".dropdown.dropdown-lg").removeClass("open");
+            
+            $.ajax({
+                url: "/discovery",
+                method: 'POST', 
+                data: form_data_to_submit,
+                beforeSend: function(){
+                    // Show Spinner on the Page
+                    $(".loader").show();
+
+                    // Hide the container
+                    $(".discovery_result").hide();
+
+                    // Clear the current contents of any of the HTML container divs
+                    $("#passage_holder").html("");
+                    $("#tab_nav_holder").html("<li class='active'><a data-toggle='tab' href='#passage_holder'>Passages</a></li>");
+                    $(".tab-content").html("<div id='passage_holder' class='tab-pane fade in active'><div id='passage_0' class='row passage'><p class='passage_text col-md-10 well'></p><p class='passage_score col-md-2'></p></div></div>");
+
+                    // Scroll the Window to the Spinner Offset
+                    $(window).scrollTop($(".loader").offset().top);
+                },
+                error: function(e) {
+                    $(".loader").hide();
+                    console.log(e);
+                    alert("An error occurred, sorry. Refresh and try again!");
+                },
+                success: function(response){
+                    // Hide the Spinner
+                    $(".loader").hide();
+
+                    // Show the results div
+                    $(".discovery_result").show();
+
+                    // Append the Response
+                    console.log(response);
+
+                    // Prepare the Data for Response
+                    setText('matching_results', response['matching_results']); // # of Matching Results (total)
+                    setText('passages_length', response['passages']['length']); // # of Matching Passages
+                    
+                    // Loop through Passages; Duplicate the '.passage' div and update child text
+                    if (response['passages']['length'] > 0) {
+                        response['passages'].forEach( function(e, i){
+                            if ($("#passage_"+i).length <= 0) {
+                                // Duplicate the Passage
+                                $("#passage_holder").append($("#passage_"+(i-1)).clone().attr('id', "passage_"+i));
+                            }
+
+                            $("#passage_"+i).children(".passage_text").text(e['passage_text']);
+                            $("#passage_"+i).children(".passage_score").text(e['passage_score']);
+
+                        });
+                    }
+
+                    response["results"].forEach(function(e,i){
+                        var title = (e['extracted_metadata']['filename']) ? e['extracted_metadata']['filename'].split(".pdf")[0] : 'File '+str(i);
+                        var id = (e['extracted_metadata']['sha1']) ? e['extracted_metadata']['sha1'] : 'file_num_'+str(i);
+
+                        $("#tab_nav_holder").append("<li><a href='#"+id+"' data-toggle='tab'>"+title+"</a></li>");
+                        $(".tab-content").append("<div id='"+id+"' class='tab-pane fade'>"+nl2br(e['text'])+"</div>");
+
+                        $("#"+id).prepend("<div id='enriched_info_"+id+"' class='row'></div>");
+                        
+                        $("#enriched_info_"+id).append("<h3>Actions in Passage</h3><div class='list-group col-md-3 action_verb_list' id='actions_"+id+"'></div>");
+
+                        e["enriched_text"]["relations"].forEach(function(relation,i){ 
+                            $("#actions_"+id).append("<a href='#' data-id='sentence_text_"+id+"' data-sentence='"+htmlEntities(relation['sentence'])+"' class='action_link list-group-item'>"+relation['action']['lemmatized']+" ("+relation['action']['text']+")</a>");
+                        });
+
+                        $("#enriched_info_"+id).append("<div class='col-md-9' id='sentence_text_"+id+"'></div>");
+                        
+                    });
+                
+                }
+            });
+            return false; 
+        });
+
+        $("body").on("click", ".action_link", function(){
+            var id = $(this).data("id"),
+                sentence = $(this).data("sentence");
+
+            //********
+            // Use a "p" tag as the button so that when it is clicked the window triggers that as the last click location
+            // and window.find() then finds the next occurence
+            $("#"+id).html( "<p>"+decodeHtml(sentence)+"</p>"+
+                            "<p href='#' class='btn btn-info find_text' data-text='"+htmlEntities(sentence)+"'>Find in Passage</p>");
+            
+            return false;
+        });
+
+        $("body").on("click", ".find_text", function(){
+            window.find(decodeHtml($(this).data("text")).trim());
+
+            return false;
+        });
+    </script>
+{% endblock %}

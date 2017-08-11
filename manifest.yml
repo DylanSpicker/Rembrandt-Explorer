@@ -1,0 +1,5 @@
+---
+applications:
+ - name: RembrandtExplorer
+   random-route: false
+   memory: 128M

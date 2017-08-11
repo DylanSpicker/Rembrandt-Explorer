@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title></title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- Style Sheets --> 
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link href="/static/jquery.dataTables.min.css" rel="stylesheet">        
+        <link href="/static/styles.css" rel="stylesheet">
+        <!-- JavaScript --> 
+        <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous"></script>
+        <script
+            src="/static/jquery.dataTables.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-static-top">
+            <div class="container">
+                <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Rembrandt / Watson Exploration</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li id="individual_navbar_link"><a href="/1">Individual</a></li>
+                    <li id="compare_navbar_link"><a href="/compare/1/2">Comparison</a></li>
+                    <li id="discovery_navbar_link"><a href="/discovery">Discovery</a></li>
+                </ul>
+                </div><!--/.nav-collapse -->
+            </div>
+            </nav>
+
+        {% block body %}{%endblock%}
+        
+    </body>
+</html>
